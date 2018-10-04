@@ -4,12 +4,11 @@ import sampleCombine from "xstream/extra/sampleCombine";
 export default class Timer {
   static STEP_COUNT = 16 * 4;
 
-  static *BeatNumberGenerator(loopStream$) {
+  static *BeatNumberGenerator() {
     let beatNumber = -1;
     while (true) {
       if (beatNumber === Timer.STEP_COUNT - 1) {
         beatNumber = -1;
-        loopStream$.shamefullySendNext();
       }
       beatNumber++;
       yield beatNumber;
@@ -19,8 +18,7 @@ export default class Timer {
   constructor(initialBpm = 60, initialState = "STOP") {
     this.bpmStream$ = xs.create().startWith(initialBpm);
     this.stateStream$ = xs.create().startWith(initialState);
-    this.loopStream$ = xs.create();
-    this.nextBeatNumberGenerator = Timer.BeatNumberGenerator(this.loopStream$);
+    this.nextBeatNumberGenerator = Timer.BeatNumberGenerator();
     this.stream$ = this.bpmStream$
       .map(bpm => {
         return xs.periodic((60 * 4 * 1000) / (bpm * Timer.STEP_COUNT));

@@ -2,6 +2,8 @@ import React, { Component } from 'react';
 import Instrument from './Instrument/Instrument'
 import styled, { createGlobalStyle } from 'styled-components';
 import Piano from './components/Piano';
+import './App.css';
+import Looper from './looper/Looper';
 
 const GlobalStyles = createGlobalStyle`
   *,
@@ -52,6 +54,7 @@ class App extends Component {
         <Flex>
           <TopSection>
             <Instrument />
+            <Looper />
           </TopSection>
           <Piano />
         </Flex>
