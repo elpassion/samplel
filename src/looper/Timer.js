@@ -1,20 +1,31 @@
 import xs from "xstream";
 
 export default class Timer {
-  constructor(bpm) {
+  constructor(initialBpm = 60, initialState = "STOP") {
     this.bpmProducer = {
       start: listener => {
         this.bpmListener = listener;
-        this.bpmListener.next(bpm);
+        this.bpmListener.next(initialBpm);
+      },
+      stop: () => {}
+    };
+    this.stateProducer = {
+      start: listener => {
+        this.stateListener = listener;
       },
       stop: () => {}
     };
     this.nextBeatNumberGenerator = Timer.nextBeatNumber();
-    this.$stream = xs
+    const tickStream = xs
       .create(this.bpmProducer)
       .map(bpm => xs.periodic((1000 * bpm) / 60 / 256))
       .flatten()
-      .map(() => this.nextBeatNumberGenerator.next().value);
+    const stateStream = xs.create(this.stateProducer).startWith(initialState);
+
+    this.$stream =
+      xs.combine(tickStream, stateStream)
+        .filter(([tick, state]) => state === "START")
+        .map(() => this.nextBeatNumberGenerator.next().value);
   }
 
   static *nextBeatNumber() {
@@ -28,5 +39,13 @@ export default class Timer {
 
   setBpm(newBpm) {
     this.bpmListener.next(newBpm);
+  }
+
+  start() {
+    this.stateListener.next("START");
+  }
+
+  stop() {
+    this.stateListener.next("STOP");
   }
 }
