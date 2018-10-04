@@ -1,61 +1,51 @@
-import React, { Component}  from 'react';
-import { MidiInstrument, Oscillator, AudioContext, SoundsBuffer } from '../Sound/Sound';
+import { Component } from "react";
 
 class Instrument extends Component {
-  oscillators = {};
+  instruments = {};
   state = {
     activeNotes: [],
-    selectedInstrument: 'oscillator'
-  }
+  };
 
   componentDidMount() {
-    this.context = new AudioContext();
-
-    const file = 'http://cdn.rawgit.com/gleitz/midi-js-soundfonts/gh-pages/MusyngKite/banjo-mp3.js'
-
-    this.marimbaBuffers = {};
-    new SoundsBuffer(this.context, { file: file, name: 'banjo' }).then(buffers => {
-      this.marimbaBuffers = buffers;
-    });
-
-    navigator.requestMIDIAccess()
-      .then(this.onMIDISuccess, this.onMIDIFailure);
+    navigator.requestMIDIAccess().then(this.onMIDISuccess, this.onMIDIFailure);
   }
 
-  onMIDISuccess = (midiAccess) => {
+  onMIDISuccess = midiAccess => {
     this.connectInputs(midiAccess);
 
-    midiAccess.onstatechange = (e) =>  {
-
-      if(e.port.state == 'connected'){
+    midiAccess.onstatechange = e => {
+      if (e.port.state === "connected") {
         this.connectInputs(midiAccess);
       }
     };
-  }
+  };
 
-  connectInputs = (midiAccess) => {
+  connectInputs = midiAccess => {
     const inputs = midiAccess.inputs.values();
 
-    for (let input = inputs.next();
-         input && !input.done;
-         input = inputs.next()) {
+    for (
+      let input = inputs.next();
+      input && !input.done;
+      input = inputs.next()
+    ) {
       input.value.onmidimessage = this.onMIDIMessage;
     }
-  }
+  };
 
   onMIDIFailure() {
-    console.log('Could not access your MIDI devices.');
+    console.log("Could not access your MIDI devices.");
   }
 
-  onMIDIMessage = (message) => {
+  onMIDIMessage = message => {
     const srcElement = message.srcElement;
     const data = message.data;
-    const channel =  data[0] & 0xf;
+    const channel = data[0] & 0xf;
     const event = data[0] & 0xf0;
     const note = data[1];
     const velocity = data[2];
 
-    if ( [144, 128].includes(event) ) { // only listen to noteOn and noteOff events
+    if ([144, 128].includes(event)) {
+      // only listen to noteOn and noteOff events
       const result = {
         name: srcElement.name,
         manufacturer: srcElement.manufacturer,
@@ -64,41 +54,35 @@ class Instrument extends Component {
         type: srcElement.type,
         event,
         note,
-        velocity,
+        velocity
       };
 
-      if(velocity > 0) {
+      if (velocity > 0) {
         this.onKeyDown(result);
-      }else{
+      } else {
         this.onKeyUp(result);
       }
     }
-  }
+  };
 
-  onKeyDown = (key) => {
-    this.oscillators[key.note] = new Oscillator(this.context).play(key.note);
-    // this.oscillators[key.note] = new MidiInstrument(this.context, this.marimbaBuffers).play(key.note);
-  }
-
-  onKeyUp = (key) => {
-    if (this.oscillators[key.note]) {
-      this.oscillators[key.note].stop();
-      delete this.oscillators[key.note];
+  onKeyDown = key => {
+    if (this.props.isActive) {
+      this.instruments[key.note] = this.props.instrument().play(key.note);
+      this.props.onKeyDown(key.note);
     }
-  }
+  };
+
+  onKeyUp = key => {
+    if (this.props.isActive && this.instruments[key.note]) {
+      this.instruments[key.note].stop();
+      delete this.instruments[key.note];
+      this.props.onKeyUp(key.note);
+    }
+  };
 
   render() {
-    return (
-      <div>
-        <h1>Instrument</h1>
-        <select onChange={e => this.setState({ selectedInstrument: e.target.value })}>
-          <option value="oscillator">Oscillator</option>
-          <option value="banjo">Banjo</option>
-        </select>
-      </div>
-    );
+    return null;
   }
 }
-
 
 export default Instrument;

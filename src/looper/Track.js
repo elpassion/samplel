@@ -7,7 +7,7 @@ export default class Track {
     return Array.from({ length }, () => []);
   }
 
-  recordingEvents = {};
+  addingEvents = {};
   events = Track.emptyArray(1024);
 
   constructor($timer) {
@@ -28,13 +28,13 @@ export default class Track {
 
   addEventStart(note, velocity) {
     const id = uuid.v4();
-    this.recordingEvents[note] = id;
+    this.addingEvents[note] = id;
     this.eventStream$.shamefullySendNext({ type: "START", note, velocity, id });
   }
 
   addEventStop(note) {
-    const id = this.recordingEvents[note];
-    delete this.recordingEvents[note];
+    const id = this.addingEvents[note];
+    delete this.addingEvents[note];
     this.eventStream$.shamefullySendNext({ type: "STOP", note, id });
   }
 
