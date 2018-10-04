@@ -6,7 +6,7 @@ export default class Track {
   events = Track.emptyArray(1024);
 
   constructor($timer) {
-    this.$stream = $timer.map(step => this.events[step]);
+    this.$stream = $timer.map(step => this.events[step]).filter((events) => events.length);
   }
 
   addEvent(step, event) {

@@ -9,22 +9,25 @@ export default class Timer {
       },
       stop: () => {}
     };
+
     this.stateProducer = {
       start: listener => {
         this.stateListener = listener;
       },
       stop: () => {}
     };
+
     this.nextBeatNumberGenerator = Timer.nextBeatNumber();
     const tickStream = xs
       .create(this.bpmProducer)
       .map(bpm => xs.periodic((1000 * bpm) / 60 / 256))
       .flatten()
+
     const stateStream = xs.create(this.stateProducer).startWith(initialState);
 
     this.$stream =
       xs.combine(tickStream, stateStream)
-        .filter(([tick, state]) => state === "START")
+        .filter(([, state]) => state === "START")
         .map(() => this.nextBeatNumberGenerator.next().value);
   }
 
