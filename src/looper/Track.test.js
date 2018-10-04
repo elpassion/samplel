@@ -1,23 +1,5 @@
 import xs from "xstream";
-
-function emptyArray(length) {
-  return Array.from({ length }, () => []);
-}
-
-class Track {
-  events = emptyArray(1024);
-  constructor($timer) {
-    this.$stream = $timer.map(step => this.events[step]);
-  }
-
-  addEvent(step, event) {
-    this.events[step].push(event);
-  }
-
-  clear() {
-    this.events = emptyArray(1024);
-  }
-}
+import Track from "./Track";
 
 describe("Track", () => {
   test("converts publishes events saved on track", () => {
@@ -34,6 +16,6 @@ describe("Track", () => {
     const track = new Track($timer);
     track.addEvent(2, { id: "123" });
     track.clear();
-    expect(track.events).toEqual(emptyArray(1024));
+    expect(track.events).toEqual(Track.emptyArray(1024));
   });
 });
