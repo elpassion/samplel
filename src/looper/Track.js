@@ -26,6 +26,7 @@ export default class Track {
           };
         } else {
           const note = this.currentlyRecordingNotes[event.note];
+          delete(this.currentlyRecordingNotes[event.note]);
           this.addEvent(note.startStep, { ...note, endStep: step });
         }
       }
