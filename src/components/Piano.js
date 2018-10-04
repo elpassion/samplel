@@ -135,8 +135,6 @@ class Piano extends React.Component {
   }
 
   onKeyDown = (e) => {
-
-    console.log(e.code);
     this.setState(prevState => ({
       pressedKeys: [...prevState.pressedKeys, e.code ]
     }));
