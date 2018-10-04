@@ -2,64 +2,45 @@ import xs from "xstream";
 import sampleCombine from "xstream/extra/sampleCombine";
 
 export default class Timer {
-  constructor(initialBpm = 60, initialState = "STOP") {
-    this.bpmProducer = {
-      start: listener => {
-        this.bpmListener = listener;
-        this.bpmListener.next(initialBpm);
-      },
-      stop: () => {}
-    };
+  static STEP_COUNT = 16 * 4;
 
-    this.loopProducer = {
-      start: listener => {
-        this.loopListener = listener;
-      },
-      stop: () => {}
-    };
-
-    this.stateProducer = {
-      start: listener => {
-        this.stateListener = listener;
-      },
-      stop: () => {}
-    };
-
-    const $tickStream = xs
-      .create(this.bpmProducer)
-      .map(bpm => xs.periodic((1000 * bpm) / 60 / 256))
-      .flatten();
-
-    const $stateStream = xs.create(this.stateProducer).startWith(initialState);
-    xs.create(this.loopProducer).addListener({ next: (loop) => loop });
-    this.nextBeatNumberGenerator = Timer.nextBeatNumber(this.loopListener);
-    this.$stream = $tickStream
-      .compose(sampleCombine($stateStream))
-      .filter(([, state]) => state === "START")
-      .map(() => this.nextBeatNumberGenerator.next().value);
-  }
-
-  static *nextBeatNumber(loopListener) {
+  static *BeatNumberGenerator(loopStream$) {
     let beatNumber = -1;
     while (true) {
-      if (beatNumber === 1023) {
+      if (beatNumber === Timer.STEP_COUNT - 1) {
         beatNumber = -1;
-        loopListener.next("a");
+        loopStream$.shamefullySendNext();
       }
       beatNumber++;
       yield beatNumber;
     }
   }
 
+  constructor(initialBpm = 60, initialState = "STOP") {
+    this.bpmStream$ = xs.create().startWith(initialBpm);
+    this.stateStream$ = xs.create().startWith(initialState);
+    this.loopStream$ = xs.create();
+    this.nextBeatNumberGenerator = Timer.BeatNumberGenerator(this.loopStream$);
+    this.stream$ = this.bpmStream$
+      .map(bpm => {
+        return xs.periodic((60 * 4 * 1000) / (bpm * Timer.STEP_COUNT));
+      })
+      .flatten()
+      .compose(sampleCombine(this.stateStream$))
+      .filter(([, state]) => state === "START")
+      .map(() => this.nextBeatNumberGenerator.next().value)
+      .startWith(0);
+  }
+
   setBpm(newBpm) {
-    this.bpmListener.next(newBpm);
+    this.bpmStream$.shamefullySendNext(newBpm);
   }
 
   start() {
-    this.stateListener.next("START");
+    this.stateStream$.shamefullySendNext("START");
   }
 
   stop() {
-    this.stateListener.next("STOP");
+    this.stateStream$.shamefullySendNext("STOP");
   }
 }
