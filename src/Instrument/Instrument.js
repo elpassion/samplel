@@ -1,18 +1,22 @@
 import React, { Component}  from 'react';
-import { Oscillator, AudioContext, BufferInstrument } from '../Sound/Sound';
-import { Note } from 'tonal';
+import { MidiInstrument, Oscillator, AudioContext, SoundsBuffer } from '../Sound/Sound';
 
 class Instrument extends Component {
   oscillators = {};
   state = {
-    activeNotes: []
+    activeNotes: [],
+    selectedInstrument: 'oscillator'
   }
 
   componentDidMount() {
     this.context = new AudioContext();
-    const bufferInstrument = new BufferInstrument(this.context, {
-      file: 'http://gleitz.github.io/midi-js-soundfonts/FluidR3_GM/marimba-mp3.js'
-    })
+
+    const file = 'http://cdn.rawgit.com/gleitz/midi-js-soundfonts/gh-pages/MusyngKite/banjo-mp3.js'
+
+    this.marimbaBuffers = {};
+    new SoundsBuffer(this.context, { file: file, name: 'banjo' }).then(buffers => {
+      this.marimbaBuffers = buffers;
+    });
 
     navigator.requestMIDIAccess()
       .then(this.onMIDISuccess, this.onMIDIFailure);
@@ -72,10 +76,8 @@ class Instrument extends Component {
   }
 
   onKeyDown = (key) => {
-    const sound = Note.freq(key.note);
-
-
-    this.oscillators[key.note] = new Oscillator(this.context).play({ frequencyValue: sound });
+    this.oscillators[key.note] = new Oscillator(this.context).play(key.note);
+    // this.oscillators[key.note] = new MidiInstrument(this.context, this.marimbaBuffers).play(key.note);
   }
 
   onKeyUp = (key) => {
@@ -87,7 +89,13 @@ class Instrument extends Component {
 
   render() {
     return (
-      <h1>Instrument</h1>
+      <div>
+        <h1>Instrument</h1>
+        <select onChange={e => this.setState({ selectedInstrument: e.target.value })}>
+          <option value="oscillator">Oscillator</option>
+          <option value="banjo">Banjo</option>
+        </select>
+      </div>
     );
   }
 }

@@ -1,11 +1,6 @@
-export const AudioContext = window.AudioContext || window.webkitAudioContext;
+import { Note } from 'tonal';
 
-export class Audio {
-  constructor(context, instrument) {
-    this.context = context;
-    this.instrument = instrument;
-  }
-}
+export const AudioContext = window.AudioContext || window.webkitAudioContext;
 
 export class Oscillator {
   config = {
@@ -16,22 +11,25 @@ export class Oscillator {
 
   constructor(context, config = {}) {
     this.context = context;
-
     this.config = Object.assign({}, this.config, config);
   }
 
-  init() {
-    this.oscillator = this.context.createOscillator();
+  init = () => {
     this.gainNode = this.context.createGain();
-
-    this.oscillator.connect(this.gainNode);
     this.gainNode.connect(this.context.destination);
+
+    this.oscillator = this.context.createOscillator();
+    this.oscillator.connect(this.gainNode);
   }
 
-  play(config = {}) {
+  play(note, config = {}) {
     this.init();
 
-    this.update(config);
+    this.update({
+      ...config,
+      frequencyValue: Note.freq(note)
+    });
+
     this.oscillator.start();
 
     return this;
@@ -52,40 +50,81 @@ export class Oscillator {
   }
 }
 
-export class Instrument {
-  onLoaded() {
-
+export class MidiInstrument {
+  constructor(context, buffers) {
+    this.context = context;
+    this.buffers = buffers;
   }
 
+  init = (note) => {
+    this.gainNode = this.context.createGain();
+    this.gainNode.connect(this.context.destination);
 
+    this.source = this.context.createBufferSource();
+    this.source.buffer = this.buffers[note];
+    this.source.connect(this.gainNode);
+  }
+
+  play = (note) => {
+    this.init(note);
+    this.source.start(this.context.currentTime);
+
+    return this;
+  }
+
+  stop(time = this.context.currentTime) {
+    this.gainNode.gain.exponentialRampToValueAtTime(0.001, time + 0.5);
+    this.source.stop(time + 0.5);
+  }
 }
 
-export class BufferInstrument {
-  config = {
-    file: ''
-  };
+function base64ToArrayBuffer(base64) {
+  var binaryString =  window.atob(base64);
+  var len = binaryString.length;
+  var bytes = new Uint8Array( len );
 
-  constructor(context, config) {
-    this.context = context;
-    this.config = Object.assign({}, this.config, config);
-
-    this.loadSound();
+  for (var i = 0; i < len; i++) {
+    bytes[i] = binaryString.charCodeAt(i);
   }
 
-  loadSound = () => {
-    const scriptPromise = new Promise((resolve, reject) => {
+  return bytes.buffer;
+}
+
+export class SoundsBuffer {
+  buffers = {};
+
+  constructor(context, { file, name }) {
+    this.context = context;
+    this.name = name;
+
+    return this.loadSounds(file)
+      .then(this.onSoundsLoaded);
+  }
+
+  loadSounds = (file) => {
+    return new Promise((resolve, reject) => {
       const script = document.createElement('script');
       document.body.appendChild(script);
       script.onload = resolve;
       script.onerror = reject;
       script.async = true;
-      script.src = this.config.file;
+      script.src = file;
     });
-
-    scriptPromise.then(() => {
-      console.log(window.MIDI);
-    })
   }
 
+  onSoundsLoaded = () => {
+    const promises = Object.entries(window.MIDI.Soundfont[this.name]).map(([ note, base64string ]) => {
+      return new Promise((resolve) => {
+        const data = base64ToArrayBuffer(base64string.split(',')[1]);
+        return this.context.decodeAudioData(data, (audioBuffer) => {
+          this.buffers[Note.midi(note)] = audioBuffer;
+          resolve();
+        });
+      })
+    });
 
+    return Promise.all(promises).then(() => {
+      return this.buffers;
+    })
+  }
 }
