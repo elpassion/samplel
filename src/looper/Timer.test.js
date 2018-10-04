@@ -7,7 +7,7 @@ describe("Timer", () => {
     const timer = new Timer(60);
     timer.subscribe(event => ticks.push(event));
     jest.advanceTimersByTime(1000);
-    expect(ticks.length).toBe(256);
+    expect(ticks).toMatchSnapshot();
   });
 
   test("in 1 second publishes 128 events for bpm 120", () => {
@@ -16,7 +16,7 @@ describe("Timer", () => {
     const timer = new Timer(120);
     timer.subscribe(event => ticks.push(event));
     jest.advanceTimersByTime(1000);
-    expect(ticks.length).toBe(128);
+    expect(ticks).toMatchSnapshot();
   });
 
   test("in 2 seconds publishes 384 events for bpm 120 and then 60", () => {
@@ -27,6 +27,15 @@ describe("Timer", () => {
     jest.advanceTimersByTime(1000);
     timer.setBpm(60);
     jest.advanceTimersByTime(1000);
-    expect(ticks.length).toBe(384);
+    expect(ticks).toMatchSnapshot();
+  });
+
+  test("correctly wraps beatNumbers", () => {
+    jest.useFakeTimers();
+    const ticks = [];
+    const timer = new Timer(120);
+    timer.subscribe(event => ticks.push(event));
+    jest.advanceTimersByTime(10000);
+    expect(ticks).toMatchSnapshot();
   });
 });
