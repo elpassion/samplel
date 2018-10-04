@@ -6,10 +6,29 @@ const Flex = styled.div`
   position: relative;
 `;
 
+const KeyboardContainer = styled(Flex)`
+  justify-content: center;
+  background: #222222;
+  padding-bottom: 24px;
+  border-top: 2px solid black;
+
+  &::before {
+    content: close-quote;
+    position: absolute;
+    display: block;
+    height: 80px;
+    width: 100%;
+    bottom: 0;
+    opacity: 0.3;
+    background: linear-gradient(0deg, #121212 0%, rgba(0, 0, 0, 0));
+  }
+`;
+
 const WhiteKey = styled.div`
   position: relative;
   width: 75px;
   height: 260px;
+  flex-shrink: 0;
   border-radius: 0 0 4px 4px;
   background: white;
   margin-right: 4px;
@@ -20,6 +39,7 @@ const BlackKey = styled.div`
   position: absolute;
   z-index: 1;
   right: 2px;
+  flex-shrink: 0;
   top: 0;
   height: 156px;
   width: 38px;
@@ -42,7 +62,7 @@ const KeyPair = styled(Flex)``;
 class Piano extends React.Component {
   render() {
     return (
-      <Flex>
+      <KeyboardContainer>
         <KeyPair>
           <WhiteKey />
           <BlackKey />
@@ -74,20 +94,7 @@ class Piano extends React.Component {
           <BlackKey />
         </KeyPair>
         <WhiteKey />
-        <KeyPair>
-          <WhiteKey />
-          <BlackKey />
-        </KeyPair>
-        <KeyPair>
-          <WhiteKey />
-          <BlackKey />
-        </KeyPair>
-        <KeyPair>
-          <WhiteKey />
-          <BlackKey />
-        </KeyPair>
-        <WhiteKey />
-      </Flex>
+      </KeyboardContainer>
     )
   }
 }

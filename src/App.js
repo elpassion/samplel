@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import Instrument from './Instrument/Instrument'
 import styled, { createGlobalStyle } from 'styled-components';
 import Piano from './components/Piano';
+import ControlBar from './components/ControlBar';
 
 const GlobalStyles = createGlobalStyle`
   *,
@@ -38,6 +39,7 @@ const Flex = styled.div`
   display: flex;
   flex-direction: column;
   height: 100%;
+  background: #303030;
 `;
 
 const TopSection = styled.div`
@@ -54,6 +56,7 @@ class App extends Component {
             <Instrument />
           </TopSection>
           <Piano />
+          <ControlBar />
         </Flex>
       </AppContainer>
     );
