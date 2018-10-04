@@ -5,7 +5,7 @@ describe("Timer", () => {
     jest.useFakeTimers();
     const ticks = [];
     const timer = new Timer(60);
-    timer.subscribe(event => ticks.push(event));
+    timer.$stream.subscribe({ next: event => ticks.push(event) });
     jest.advanceTimersByTime(1000);
     expect(ticks).toMatchSnapshot();
   });
@@ -14,7 +14,7 @@ describe("Timer", () => {
     jest.useFakeTimers();
     const ticks = [];
     const timer = new Timer(120);
-    timer.subscribe(event => ticks.push(event));
+    timer.$stream.subscribe({ next: event => ticks.push(event) });
     jest.advanceTimersByTime(1000);
     expect(ticks).toMatchSnapshot();
   });
@@ -23,7 +23,7 @@ describe("Timer", () => {
     jest.useFakeTimers();
     const ticks = [];
     const timer = new Timer(120);
-    timer.subscribe(event => ticks.push(event));
+    timer.$stream.subscribe({ next: event => ticks.push(event) });
     jest.advanceTimersByTime(1000);
     timer.setBpm(60);
     jest.advanceTimersByTime(1000);
@@ -34,7 +34,7 @@ describe("Timer", () => {
     jest.useFakeTimers();
     const ticks = [];
     const timer = new Timer(120);
-    timer.subscribe(event => ticks.push(event));
+    timer.$stream.subscribe({ next: event => ticks.push(event) });
     jest.advanceTimersByTime(10000);
     expect(ticks).toMatchSnapshot();
   });

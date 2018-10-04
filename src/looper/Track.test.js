@@ -1,14 +1,18 @@
+import xs from "xstream";
+
 class Track {
-  constructor(timer) {
-    this.timer = timer;
-    this.timer.subscribe();
+  events = Array.from({length: 1024}, () => []);    
+  constructor($timer) {
+    this.$stream = $timer.map((step) => this.events[step])
   }
 }
 
 describe("Track", () => {
-  test("subscribes to Timer", () => {
-    const timer = { subscribe: jest.fn() };
-    new Track(timer);
-    expect(timer.subscribe).toHaveBeenCalled();
+  test("abc", () => {
+    const ticks = [];
+    const $timer = xs.of(0);
+    const track = new Track($timer);
+    track.$stream.subscribe({ next: event => ticks.push(event) });
+    expect(ticks).toEqual([[]])
   })
 })

@@ -10,7 +10,7 @@ export default class Timer {
       stop: () => {}
     };
     this.nextBeatNumberGenerator = Timer.nextBeatNumber();
-    this.stream = xs
+    this.$stream = xs
       .create(this.bpmProducer)
       .map(bpm => xs.periodic((1000 * bpm) / 60 / 256))
       .flatten()
@@ -28,9 +28,5 @@ export default class Timer {
 
   setBpm(newBpm) {
     this.bpmListener.next(newBpm);
-  }
-
-  subscribe(fn) {
-    return this.stream.subscribe({ next: fn });
   }
 }
