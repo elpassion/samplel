@@ -18,4 +18,17 @@ describe("Track", () => {
     track.clear();
     expect(track.events).toEqual(Track.emptyArray(1024));
   });
+
+  test("converts publishes events saved on track", () => {
+    const ticks = [];
+    const $timer = xs.create();
+    const track = new Track($timer);
+    track.$stream.subscribe({ next: event => ticks.push(event) });
+    $timer.shamefullySendNext(0);
+    track.addEventStart("A1", 100);
+    $timer.shamefullySendNext(2);
+    track.addEventStop("A1");
+    $timer.shamefullySendNext(0);
+    expect(ticks).toEqual([[{"endStep": 2, "note": "A1", "startStep": 0, "velocity": 100}]]);
+  });
 });
