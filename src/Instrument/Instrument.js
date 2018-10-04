@@ -1,11 +1,16 @@
 import React, { Component}  from 'react';
+import { Oscillator, AudioContext } from '../Sound/Sound';
+import { Note } from 'tonal';
 
 class Instrument extends Component {
-  constructor(props){
-    super(props);
+  oscillators = {};
+  state = {
+    activeNotes: []
   }
 
   componentDidMount() {
+    this.context = new AudioContext();
+
     navigator.requestMIDIAccess()
       .then(this.onMIDISuccess, this.onMIDIFailure);
   }
@@ -34,7 +39,6 @@ class Instrument extends Component {
   onMIDIFailure() {
     console.log('Could not access your MIDI devices.');
   }
-
 
   onMIDIMessage = (message) => {
     const srcElement = message.srcElement;
@@ -65,11 +69,17 @@ class Instrument extends Component {
   }
 
   onKeyDown = (key) => {
-    console.log('key', key);
+    const sound = Note.freq(key.note);
+
+
+    this.oscillators[key.note] = new Oscillator(this.context).play({ frequencyValue: sound });
   }
 
   onKeyUp = (key) => {
-    console.log('key', key);
+    if (this.oscillators[key.note]) {
+      this.oscillators[key.note].stop();
+      delete this.oscillators[key.note];
+    }
   }
 
   render() {
