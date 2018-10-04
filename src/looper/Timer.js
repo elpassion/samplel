@@ -1,4 +1,5 @@
 import xs from "xstream";
+import sampleCombine from "xstream/extra/sampleCombine";
 
 export default class Timer {
   constructor(initialBpm = 60, initialState = "STOP") {
@@ -10,6 +11,13 @@ export default class Timer {
       stop: () => {}
     };
 
+    this.loopProducer = {
+      start: listener => {
+        this.loopListener = listener;
+      },
+      stop: () => {}
+    };
+
     this.stateProducer = {
       start: listener => {
         this.stateListener = listener;
@@ -17,24 +25,27 @@ export default class Timer {
       stop: () => {}
     };
 
-    this.nextBeatNumberGenerator = Timer.nextBeatNumber();
-    const tickStream = xs
+    const $tickStream = xs
       .create(this.bpmProducer)
       .map(bpm => xs.periodic((1000 * bpm) / 60 / 256))
-      .flatten()
+      .flatten();
 
-    const stateStream = xs.create(this.stateProducer).startWith(initialState);
-
-    this.$stream =
-      xs.combine(tickStream, stateStream)
-        .filter(([, state]) => state === "START")
-        .map(() => this.nextBeatNumberGenerator.next().value);
+    const $stateStream = xs.create(this.stateProducer).startWith(initialState);
+    xs.create(this.loopProducer).addListener({ next: (loop) => loop });
+    this.nextBeatNumberGenerator = Timer.nextBeatNumber(this.loopListener);
+    this.$stream = $tickStream
+      .compose(sampleCombine($stateStream))
+      .filter(([, state]) => state === "START")
+      .map(() => this.nextBeatNumberGenerator.next().value);
   }
 
-  static *nextBeatNumber() {
+  static *nextBeatNumber(loopListener) {
     let beatNumber = -1;
     while (true) {
-      if (beatNumber === 1023) beatNumber = -1;
+      if (beatNumber === 1023) {
+        beatNumber = -1;
+        loopListener.next("a");
+      }
       beatNumber++;
       yield beatNumber;
     }
