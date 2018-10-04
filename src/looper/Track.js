@@ -1,4 +1,5 @@
 import xs from "xstream";
+import sampleCombine from 'xstream/extra/sampleCombine'
 
 export default class Track {
   static emptyArray(length) {
@@ -10,13 +11,13 @@ export default class Track {
 
   constructor($timer) {
     this.$timer = $timer;
-    this.$eventStream = {
+    this.$eventStream = xs.create({
       start: listener => {
         this.eventListener = listener;
       },
       stop: () => {}
-    };
-    xs.combine(this.$eventStream, this.$timer).map(
+    });
+    this.$eventStream.compose(sampleCombine(this.$timer)).map(
       ([{ type, ...event }, step]) => {
         if (type === "START") {
           this.currentlyRecordingNotes[event.note] = {
@@ -25,10 +26,10 @@ export default class Track {
           };
         } else {
           const note = this.currentlyRecordingNotes[event.note];
-          this.addEvent(note.step, { ...note, endStep: step });
+          this.addEvent(note.startStep, { ...note, endStep: step });
         }
       }
-    );
+    ).subscribe({ next: () => {} });
     this.$stream = this.$timer
       .map(step => this.events[step])
       .filter(events => events.length);
