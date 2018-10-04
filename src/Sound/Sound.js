@@ -11,16 +11,13 @@ export class Oscillator {
   config = {
     type: 'sine',
     frequencyValue: 440,
-    fadeOut: 0.1, // fadeOut time after calling stop
+    fadeOut: 0.6, // fadeOut time after calling stop
   }
 
   constructor(context, config = {}) {
     this.context = context;
 
-    this.config = {
-      ...this.config,
-      ...config
-    }
+    this.config = Object.assign({}, this.config, config);
   }
 
   init() {
@@ -55,6 +52,40 @@ export class Oscillator {
   }
 }
 
-class BufferInput {
+export class Instrument {
+  onLoaded() {
+
+  }
+
+
+}
+
+export class BufferInstrument {
+  config = {
+    file: ''
+  };
+
+  constructor(context, config) {
+    this.context = context;
+    this.config = Object.assign({}, this.config, config);
+
+    this.loadSound();
+  }
+
+  loadSound = () => {
+    const scriptPromise = new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      document.body.appendChild(script);
+      script.onload = resolve;
+      script.onerror = reject;
+      script.async = true;
+      script.src = this.config.file;
+    });
+
+    scriptPromise.then(() => {
+      console.log(window.MIDI);
+    })
+  }
+
 
 }

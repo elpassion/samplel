@@ -1,5 +1,5 @@
 import React, { Component}  from 'react';
-import { Oscillator, AudioContext } from '../Sound/Sound';
+import { Oscillator, AudioContext, BufferInstrument } from '../Sound/Sound';
 import { Note } from 'tonal';
 
 class Instrument extends Component {
@@ -10,6 +10,9 @@ class Instrument extends Component {
 
   componentDidMount() {
     this.context = new AudioContext();
+    const bufferInstrument = new BufferInstrument(this.context, {
+      file: 'http://gleitz.github.io/midi-js-soundfonts/FluidR3_GM/marimba-mp3.js'
+    })
 
     navigator.requestMIDIAccess()
       .then(this.onMIDISuccess, this.onMIDIFailure);
