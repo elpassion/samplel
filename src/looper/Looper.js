@@ -8,10 +8,10 @@ import {
   Oscillator,
   MidiInstrument,
 } from "../Sound/Sound";
-import MidiController from "../components/MidiController";
 import SoundLoader from "../Sound/SoundLoader";
 import timer from "../timer";
 import Timer from "./Timer";
+import { inject, observer } from 'mobx-react';
 
 const context = new AudioContext();
 const soundLoader = new SoundLoader(context);
@@ -38,7 +38,7 @@ const TrackBeat = styled(Beat)`
   height: 96px;
 `;
 
-class TrackComponent extends React.Component {
+class BaseTrackComponent extends React.Component {
   track = new Track(timer.stream$);
   currentlyPlayingNotes = {};
   state = {
@@ -61,7 +61,11 @@ class TrackComponent extends React.Component {
     });
   }
 
-  instrument = () => {
+  getTrackInstrument = () => {
+
+  }
+
+  instrument = (trackI) => {
     const { selectedInstrument } = this.state;
 
     return selectedInstrument === "oscillator"
@@ -96,16 +100,18 @@ class TrackComponent extends React.Component {
             />
           }
         />
-        <MidiController
+        {/* <MidiController
           isActive={this.props.isActive}
           instrument={this.instrument}
           onKeyDown={key => this.track.addEventStart(key, undefined)}
           onKeyUp={key => this.track.addEventStop(key)}
-        />
+        /> */}
       </>
     );
   }
 }
+
+const TrackComponent = inject('appState')(observer(BaseTrackComponent));
 
 const Tracks = styled.div`
   background-color: #3d3d3d;
@@ -157,20 +163,16 @@ const Ticker = styled.div.attrs({
 `;
 
 class App extends React.Component {
-  state = {
-    activeTrack: 0
-  };
-
   render() {
     const { count } = this.props;
     return (
       <Tracks>
         <Ticker position={count} />
         <TracksRow Component={<TracksColumn Component={<HeaderBeat />} />} />
-        <TrackComponent isActive={this.state.activeTrack === 0} />
-        <TrackComponent isActive={this.state.activeTrack === 1} />
-        <TrackComponent isActive={this.state.activeTrack === 2} />
-        <TrackComponent isActive={this.state.activeTrack === 3} />
+        <TrackComponent trackId={0} />
+        <TrackComponent trackId={1} />
+        <TrackComponent trackId={2} />
+        <TrackComponent trackId={3} />
       </Tracks>
 
       /* Active Track: <select

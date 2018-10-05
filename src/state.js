@@ -13,6 +13,7 @@ class AppState {
   pressedKeys = [];
   currentOctave = 4;
   selectedInstrument = 'oscillator';
+  activeTrack = 0;
   currentlyPlayingNotes = {};
 
   onKeyDown = (midiCode) => {
@@ -62,6 +63,7 @@ class AppState {
 
 decorate(AppState, {
   pressedKeys: observable,
+  activeTrack: observable,
   selectedInstrument: observable,
   currentOctave: observable,
   currentlyPlayingNotes: observable,

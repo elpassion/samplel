@@ -3,6 +3,7 @@ import styled, { createGlobalStyle } from 'styled-components';
 import Piano from './components/Piano';
 import ControlBar from './components/ControlBar';
 import Looper from './looper/Looper';
+import MidiController from "./components/MidiController";
 
 const GlobalStyles = createGlobalStyle`
   *,
@@ -47,6 +48,7 @@ class App extends Component {
     return (
       <AppContainer>
         <GlobalStyles />
+        <MidiController />
         <Flex>
           <Looper />
           <Piano />
