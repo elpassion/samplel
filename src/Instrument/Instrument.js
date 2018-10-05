@@ -1,13 +1,32 @@
 import { Component } from "react";
 
+const keys = {
+  65: 69,
+  83: 71,
+  68: 72,
+  70: 74,
+  71: 76,
+  72: 77,
+  74: 79,
+  75: 81,
+}
+
 class Instrument extends Component {
   instruments = {};
   state = {
-    activeNotes: [],
+    activeNotes: []
   };
 
   componentDidMount() {
     navigator.requestMIDIAccess().then(this.onMIDISuccess, this.onMIDIFailure);
+    document.addEventListener("keydown", ev => {
+      const note = keys[ev.keyCode];
+      if(note) this.onKeyDown({ note });
+    });
+    document.addEventListener("keyup", ev => {
+      const note = keys[ev.keyCode];
+      this.onKeyUp({ note });
+    });
   }
 
   onMIDISuccess = midiAccess => {
@@ -66,7 +85,7 @@ class Instrument extends Component {
   };
 
   onKeyDown = key => {
-    if (this.props.isActive) {
+    if (this.props.isActive && !this.instruments[key.note]) {
       this.instruments[key.note] = this.props.instrument().play(key.note);
       this.props.onKeyDown(key.note);
     }

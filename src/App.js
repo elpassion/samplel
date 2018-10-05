@@ -42,19 +42,13 @@ const Flex = styled.div`
   background: #303030;
 `;
 
-const TopSection = styled.div`
-  flex: 1;
-`;
-
 class App extends Component {
   render() {
     return (
       <AppContainer>
         <GlobalStyles />
         <Flex>
-          <TopSection>
-            <Looper />
-          </TopSection>
+          <Looper />
           <Piano />
           <ControlBar />
         </Flex>

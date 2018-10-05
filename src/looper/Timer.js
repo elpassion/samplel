@@ -2,7 +2,9 @@ import xs from "xstream";
 import sampleCombine from "xstream/extra/sampleCombine";
 
 export default class Timer {
-  static STEP_COUNT = 16 * 4;
+  static BEAT_STEP_COUNT = 16;
+  static BEAT_COUNT = 4;
+  static STEP_COUNT = Timer.BEAT_STEP_COUNT * Timer.BEAT_COUNT;
 
   static *BeatNumberGenerator() {
     let beatNumber = -1;

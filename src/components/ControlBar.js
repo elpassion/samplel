@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import { ReactComponent as SvgPlay } from '../assets/icons/play.svg';
 import { ReactComponent as SvgStop } from '../assets/icons/stop.svg';
 import { ReactComponent as SvgRecord } from '../assets/icons/record.svg';
+import timer from "../timer";
 
 const Flex = styled.div`
   display: flex;
@@ -47,10 +48,10 @@ class ControlBar extends React.Component {
       <Container>
         <Flex>
           <Timer>00:10.0</Timer>
-          <DarkButton>
+          <DarkButton onClick={() => timer.start()} >
             <StyledSvgPlay />
           </DarkButton>
-          <DarkButton>
+          <DarkButton onClick={() => timer.stop()} >
             <SvgStop />
           </DarkButton>
           <PauseButton>
