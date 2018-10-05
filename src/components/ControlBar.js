@@ -96,7 +96,7 @@ class ControlBar extends React.Component {
   incrementBPM = () => {
 
     this.setState(prevState => ({
-      bpm: prevState.bpm + 1
+      bpm: prevState.bpm + 10
     }));
 
     timer.setBpm(this.state.bpm)
@@ -105,7 +105,7 @@ class ControlBar extends React.Component {
   decreaseBPM = () => {
 
     this.setState(prevState => ({
-      bpm: prevState.bpm - 1
+      bpm: prevState.bpm - 10
     }));
 
     timer.setBpm(this.state.bpm)
