@@ -87,7 +87,6 @@ class ControlBar extends React.Component {
     return (
       <Container>
         <ContainerFluid>
-          <Counter>00:10.0</Counter>
           <DarkButton onClick={() => timer.start()} >
             <StyledSvgPlay />
           </DarkButton>
