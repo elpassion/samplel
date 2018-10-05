@@ -137,6 +137,7 @@ const TracksRow = ({ Column, Beat, events, onClick, onSelectInstrument, isActive
       <>
         {onSelectInstrument && (
           <InstrumentPicker onChange={onSelectInstrument}>
+            <option value="oscillator">Oscillator</option>
             {soundLoader.instruments.map(name => (
               <option value={name}>{name}</option>
             ))}
