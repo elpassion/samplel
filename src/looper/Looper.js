@@ -3,11 +3,7 @@ import { Provider, connect } from "@seracio/xstream-connect";
 import xs from "xstream";
 import styled from "styled-components";
 import Track from "./Track";
-import {
-  AudioContext,
-  Oscillator,
-  MidiInstrument,
-} from "../Sound/Sound";
+import { AudioContext, Oscillator, MidiInstrument } from "../Sound/Sound";
 import Instrument from "../Instrument/Instrument";
 import SoundLoader from "../Sound/SoundLoader";
 import timer from "../timer";
@@ -24,6 +20,7 @@ const store = {
 
 const Beat = styled.div`
   flex: 1;
+  position: relative;
   border-left: 1px solid transparent;
   &:nth-child(4n + 1):not(:first-of-type) {
     border-left: 1px solid rgba(28, 28, 28, 0.4);
@@ -34,9 +31,27 @@ const HeaderBeat = styled(Beat)`
   height: 16px;
 `;
 
-const TrackBeat = styled(Beat)`
-  height: 96px;
-`;
+class TrackBeat extends React.Component {
+  static StyledBeat = styled(Beat)`
+    height: 96px;
+  `;
+
+  render() {
+    return (
+      <TrackBeat.StyledBeat className={this.props.className}>
+        {this.props.events[this.props.index].map((sound, index) => (
+          <>
+            <Sound
+              key={index}
+              length={sound.length}
+              top={96 * (sound.note / 100)}
+            />
+          </>
+        ))}
+      </TrackBeat.StyledBeat>
+    );
+  }
+}
 
 class TrackComponent extends React.Component {
   track = new Track(timer.stream$);
@@ -69,40 +84,35 @@ class TrackComponent extends React.Component {
       : new MidiInstrument(context, soundLoader.buffers[selectedInstrument]);
   };
 
-  onSelectInstrument = (e) => {
+  onSelectInstrument = e => {
     const selectedInstrument = e.target.value;
 
     this.setState({ selectedInstrument });
 
-    if (selectedInstrument === 'oscillator') return;
+    if (selectedInstrument === "oscillator") return;
 
-    soundLoader.loadInstrument(selectedInstrument)
-      .then(() => console.log('Loaded', selectedInstrument));
-  }
+    soundLoader
+      .loadInstrument(selectedInstrument)
+      .then(() => console.log("Loaded", selectedInstrument));
+  };
 
   render() {
     return (
-      <>
-        {/* <select onChange={this.onSelectInstrument}>
-          <option value="oscillator">Oscillator</option>
-          {soundLoader.instruments.map(name => (
-            <option key={name} value={name}>{name}</option>
-          ))}
-        </select>*/}
-        <TracksRow
-          Component={
-            <TracksColumn
-              Component={<TrackBeat active={this.props.isActive} />}
-            />
-          }
-        />
-        <Instrument
-          isActive={this.props.isActive}
-          instrument={this.instrument}
-          onKeyDown={key => this.track.addEventStart(key, undefined)}
-          onKeyUp={key => this.track.addEventStop(key)}
-        />
-      </>
+      <Provider
+        store={{
+          events$: this.track.completeEvents$
+        }}
+      >
+        <>
+          <ConnectedTracksRow Column={TracksColumn} Beat={TrackBeat} />
+          <Instrument
+            isActive={this.props.isActive}
+            instrument={this.instrument}
+            onKeyDown={key => this.track.addEventStart(key, undefined)}
+            onKeyUp={key => this.track.addEventStop(key)}
+          />
+        </>
+      </Provider>
     );
   }
 }
@@ -117,11 +127,17 @@ const Tracks = styled.div`
   margin: 0 auto;
 `;
 
-const TracksRow = ({ Component }) => (
+const TracksRow = ({ Column, Beat, events }) => (
   <TracksRow.Wrapper>
-    {Array.from({ length: Timer.BEAT_COUNT }, () => Component)}
+    {Array.from({ length: Timer.BEAT_COUNT }, (_, index) => (
+      <Column key={index} index={index} Beat={Beat} events={events} />
+    ))}
   </TracksRow.Wrapper>
 );
+
+const ConnectedTracksRow = connect(({ events$ }) => {
+  return events$.map(events => ({ events: [...events] }));
+})(TracksRow);
 
 TracksRow.Wrapper = styled.div`
   display: flex;
@@ -130,9 +146,15 @@ TracksRow.Wrapper = styled.div`
   border-top: 1px solid black;
 `;
 
-const TracksColumn = ({ Component }) => (
+const TracksColumn = ({ Beat, index, events }) => (
   <TracksColumn.Wrapper>
-    {Array.from({ length: Timer.BEAT_STEP_COUNT }, () => Component)}
+    {Array.from({ length: Timer.BEAT_STEP_COUNT }, (_, stepIndex) => (
+      <Beat
+        key={stepIndex}
+        index={Timer.BEAT_STEP_COUNT * index + stepIndex}
+        events={events}
+      />
+    ))}
   </TracksColumn.Wrapper>
 );
 
@@ -144,8 +166,8 @@ TracksColumn.Wrapper = styled.div`
 `;
 
 const Ticker = styled.div.attrs({
-  style: ({ position }) => ({
-    transform: `translateX(${960 * (position / Timer.STEP_COUNT)}px)`
+  style: ({ count }) => ({
+    transform: `translateX(${960 * (count / Timer.STEP_COUNT)}px)`
   })
 })`
   width: 2px;
@@ -156,49 +178,43 @@ const Ticker = styled.div.attrs({
   position: absolute;
 `;
 
+const ConnectedTicker = connect(({ count$ }) => {
+  return count$.map(count => ({ count }));
+})(Ticker);
+
+const Sound = styled.div`
+  background-color: yellow;
+  height: 8px;
+  position: absolute;
+  left: 0;
+  top: ${({top}) => `${top}px`}
+  width: ${({length}) => `${length * 14.94}px`}
+`;
+
 class App extends React.Component {
   state = {
     activeTrack: 0
   };
 
   render() {
-    const { count } = this.props;
     return (
       <Tracks>
-        <Ticker position={count} />
-        <TracksRow Component={<TracksColumn Component={<HeaderBeat />} />} />
+        <ConnectedTicker />
+        <TracksRow Column={TracksColumn} Beat={HeaderBeat} />
         <TrackComponent isActive={this.state.activeTrack === 0} />
         <TrackComponent isActive={this.state.activeTrack === 1} />
         <TrackComponent isActive={this.state.activeTrack === 2} />
         <TrackComponent isActive={this.state.activeTrack === 3} />
       </Tracks>
-
-      /* Active Track: <select
-            onChange={e => this.setState({ activeTrack: parseInt(e.target.value, 10) })}
-          >
-          <option value={0}>0</option>
-          <option value={1}>1</option>
-        </select>
-        <input value={bpm} onChange={e => timer.setBpm(e.target.value) || 0} />
-        <button onClick={() => timer.start()} />
-        <button onClick={() => timer.stop()} /> */
     );
   }
 }
-
-const combinator = ({ count$, player$, bpm$ }) => {
-  return xs
-    .combine(count$, player$, bpm$)
-    .map(([count, isPlaying, bpm]) => ({ count, isPlaying, bpm }));
-};
-
-const ConnectedApp = connect(combinator)(App);
 
 export default class Looper extends React.Component {
   render() {
     return (
       <Provider store={store}>
-        <ConnectedApp />
+        <App />
       </Provider>
     );
   }

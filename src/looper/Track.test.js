@@ -16,7 +16,7 @@ describe("Track", () => {
     const track = new Track(timer$);
     track.addEvent(2, { id: "123" });
     track.clear();
-    expect(track.events).toEqual(Track.emptyArray(1024));
+    expect(track.events).toEqual(Track.emptyArray(64));
   });
 
   test("converts publishes events saved on track", () => {
@@ -32,5 +32,17 @@ describe("Track", () => {
     expect(ticks).toEqual([
       [{ note: "A1", velocity: 100, id: expect.any(String), type: "START" }]
     ]);
+  });
+
+  test("exposes completeEvents as an array", () => {
+    const ticks = [];
+    const timer$ = xs.create();
+    const track = new Track(timer$);
+    track.stream$.subscribe({ next: event => ticks.push(event) });
+    timer$.shamefullySendNext(0);
+    track.addEventStart("A1", 100);
+    timer$.shamefullySendNext(2);
+    track.addEventStop("A1");
+    expect(track.completeEvents[0]).toEqual([{note: "A1", length: 2}]);
   });
 });
