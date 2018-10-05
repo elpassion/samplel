@@ -8,7 +8,7 @@ import {
   Oscillator,
   MidiInstrument,
 } from "../Sound/Sound";
-import Instrument from "../Instrument/Instrument";
+import MidiController from "../components/MidiController";
 import SoundLoader from "../Sound/SoundLoader";
 import timer from "../timer";
 import Timer from "./Timer";
@@ -96,7 +96,7 @@ class TrackComponent extends React.Component {
             />
           }
         />
-        <Instrument
+        <MidiController
           isActive={this.props.isActive}
           instrument={this.instrument}
           onKeyDown={key => this.track.addEventStart(key, undefined)}

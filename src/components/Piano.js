@@ -1,5 +1,8 @@
 import styled from 'styled-components';
 import React from 'react';
+import { observer, inject } from 'mobx-react';
+import { Note } from 'tonal';
+import data from '../data';
 
 const Flex = styled.div`
   display: flex;
@@ -86,29 +89,29 @@ const BlackKey = styled.div`
   }
 `;
 
-class Key extends React.Component {
+class BaseKey extends React.Component {
   state = {
     isActive: false,
   }
 
-  setActive = () => {
-    this.setState({ isActive: true });
+  onMouseDown = () => {
+    this.props.appState.onKeyDown(Note.midi(this.props.name));
   }
 
-  setInactive = () => {
-    this.setState({ isActive: false });
+  onMouseUp = () => {
+    this.props.appState.onKeyUp(Note.midi(this.props.name));
   }
 
   render() {
-    const { as: Component = WhiteKey, label, ...props } = this.props;
+    const { as: Component = WhiteKey, name, label, ...props } = this.props;
 
-    const isKeyActive = this.props.pressedKeys.find(key => key === `Key${label}`);
+    const isKeyActive = this.props.appState.pressedKeys.find(midiKey => midiKey === Note.midi(name));
 
     return (
       <Component
-        onMouseDown={this.setActive}
-        onMouseUp={this.setInactive}
-        isActive={isKeyActive || this.state.isActive}
+        onMouseDown={this.onMouseDown}
+        onMouseUp={this.onMouseUp}
+        isActive={isKeyActive}
         {...props}
       >
         {label && <KeyLabel>{label}</KeyLabel>}
@@ -117,72 +120,79 @@ class Key extends React.Component {
   }
 }
 
+const Key = inject('appState')(observer(BaseKey));
+
 const KeyPair = styled(Flex)``;
 
 class Piano extends React.Component {
-  state = {
-    pressedKeys: []
+  onKeyboardKeyUp = (e) => {
+    const key = data.keymapper[e.keyCode];
+
+    if (key) {
+      const actualKey = `${key[0]}${(this.props.appState.currentOctave + key[1])}`;
+      this.props.appState.onKeyUp(Note.midi(actualKey));
+    }
+  }
+
+  onKeyboardKeyDown = (e) => {
+    const key = data.keymapper[e.keyCode];
+
+    if (key) {
+      const actualKey = `${key[0]}${(this.props.appState.currentOctave + key[1])}`;
+      this.props.appState.onKeyDown(Note.midi(actualKey));
+    }
   }
 
   componentDidMount() {
-    document.addEventListener('keydown', this.onKeyDown);
-    document.addEventListener('keyup', this.onKeyUp);
+    document.addEventListener('keydown', this.onKeyboardKeyDown);
+    document.addEventListener('keyup', this.onKeyboardKeyUp);
   }
 
   componentWillMount() {
-    document.removeEventListener('keydown', this.onKeyDown);
-    document.removeEventListener('keyup', this.onKeyUp);
-  }
-
-  onKeyDown = (e) => {
-    this.setState(prevState => ({
-      pressedKeys: [...prevState.pressedKeys, e.code ]
-    }));
-  }
-
-  onKeyUp = (e) => {
-    this.setState(prevState => ({
-      pressedKeys: prevState.pressedKeys.filter((keyCode) => keyCode !== e.code),
-    }));
+    document.removeEventListener('keydown', this.onKeyboardKeyDown);
+    document.removeEventListener('keyup', this.onKeyboardKeyUp);
   }
 
   render() {
+    const getKeyName = (name, offset = 0) => name + (this.props.appState.currentOctave + offset);
+
     return (
       <KeyboardContainer>
         <KeyPair>
-          <Key label="A" pressedKeys={this.state.pressedKeys} />
-          <Key label="W" as={BlackKey} pressedKeys={this.state.pressedKeys} />
+          <Key name={getKeyName('C')} label="A" />
+          <Key name={getKeyName('C#')} label="W" as={BlackKey} />
         </KeyPair>
         <KeyPair>
-          <Key label="S" pressedKeys={this.state.pressedKeys} />
-          <Key label="E" as={BlackKey} pressedKeys={this.state.pressedKeys}/>
+          <Key name={getKeyName('D')} label="S" />
+          <Key name={getKeyName('D#')} label="E" as={BlackKey}/>
         </KeyPair>
-        <Key label="D" pressedKeys={this.state.pressedKeys} />
+        <Key name={getKeyName('E')} label="D" />
         <KeyPair>
-          <Key label="F" pressedKeys={this.state.pressedKeys} />
-          <Key label="T" as={BlackKey} pressedKeys={this.state.pressedKeys} />
-        </KeyPair>
-        <KeyPair>
-          <Key label="G" pressedKeys={this.state.pressedKeys} />
-          <Key label="Y" as={BlackKey} pressedKeys={this.state.pressedKeys} />
+          <Key name={getKeyName('F')} label="F" />
+          <Key name={getKeyName('F#')} label="T" as={BlackKey} />
         </KeyPair>
         <KeyPair>
-          <Key label="H" pressedKeys={this.state.pressedKeys} />
-          <Key label="U" as={BlackKey} pressedKeys={this.state.pressedKeys} />
-        </KeyPair>
-        <Key label="J" pressedKeys={this.state.pressedKeys} />
-        <KeyPair>
-          <Key label="K" pressedKeys={this.state.pressedKeys} />
-          <Key label="O" as={BlackKey} pressedKeys={this.state.pressedKeys} />
+          <Key name={getKeyName('G')} label="G" />
+          <Key name={getKeyName('G#')} label="Y" as={BlackKey} />
         </KeyPair>
         <KeyPair>
-          <Key label="L" pressedKeys={this.state.pressedKeys} />
-          <Key label="P" as={BlackKey} pressedKeys={this.state.pressedKeys} />
+          <Key name={getKeyName('A')} label="H" />
+          <Key name={getKeyName('A#')} label="U" as={BlackKey} />
         </KeyPair>
-        <Key label=";" pressedKeys={this.state.pressedKeys} />
+        <Key name={getKeyName('B')} label="J" />
+
+        <KeyPair>
+          <Key name={getKeyName('C', 1)} label="K" />
+          <Key name={getKeyName('C#', 1)} label="O" as={BlackKey} />
+        </KeyPair>
+        <KeyPair>
+          <Key name={getKeyName('D', 1)} label="L" />
+          <Key name={getKeyName('D#', 1)} label="P" as={BlackKey}/>
+        </KeyPair>
+        <Key name={getKeyName('E', 1)} label=";" />
       </KeyboardContainer>
     )
   }
 }
 
-export default Piano;
+export default inject('appState')(observer(Piano));
