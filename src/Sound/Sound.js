@@ -59,6 +59,7 @@ export class MidiInstrument {
   init = (note) => {
     this.gainNode = this.context.createGain();
     this.gainNode.connect(this.context.destination);
+    this.gainNode.gain.value = 1;
 
     this.source = this.context.createBufferSource();
     this.source.buffer = this.buffers[note];
@@ -78,53 +79,41 @@ export class MidiInstrument {
   }
 }
 
-function base64ToArrayBuffer(base64) {
-  var binaryString =  window.atob(base64);
-  var len = binaryString.length;
-  var bytes = new Uint8Array( len );
+// export class SoundsBuffer {
+//   buffers = {};
 
-  for (var i = 0; i < len; i++) {
-    bytes[i] = binaryString.charCodeAt(i);
-  }
+//   constructor(context, { file, name }) {
+//     this.context = context;
+//     this.name = name;
 
-  return bytes.buffer;
-}
+//     return this.loadSounds(file)
+//       .then(this.onSoundsLoaded);
+//   }
 
-export class SoundsBuffer {
-  buffers = {};
+//   loadSounds = (file) => {
+//     return new Promise((resolve, reject) => {
+//       const script = document.createElement('script');
+//       document.body.appendChild(script);
+//       script.onload = resolve;
+//       script.onerror = reject;
+//       script.async = true;
+//       script.src = file;
+//     });
+//   }
 
-  constructor(context, { file, name }) {
-    this.context = context;
-    this.name = name;
+//   onSoundsLoaded = () => {
+//     const promises = Object.entries(window.MIDI.Soundfont[this.name]).map(([ note, base64string ]) => {
+//       return new Promise((resolve) => {
+//         const data = base64ToArrayBuffer(base64string.split(',')[1]);
+//         return this.context.decodeAudioData(data, (audioBuffer) => {
+//           this.buffers[Note.midi(note)] = audioBuffer;
+//           resolve();
+//         });
+//       })
+//     });
 
-    return this.loadSounds(file)
-      .then(this.onSoundsLoaded);
-  }
-
-  loadSounds = (file) => {
-    return new Promise((resolve, reject) => {
-      const script = document.createElement('script');
-      document.body.appendChild(script);
-      script.onload = resolve;
-      script.onerror = reject;
-      script.async = true;
-      script.src = file;
-    });
-  }
-
-  onSoundsLoaded = () => {
-    const promises = Object.entries(window.MIDI.Soundfont[this.name]).map(([ note, base64string ]) => {
-      return new Promise((resolve) => {
-        const data = base64ToArrayBuffer(base64string.split(',')[1]);
-        return this.context.decodeAudioData(data, (audioBuffer) => {
-          this.buffers[Note.midi(note)] = audioBuffer;
-          resolve();
-        });
-      })
-    });
-
-    return Promise.all(promises).then(() => {
-      return this.buffers;
-    })
-  }
-}
+//     return Promise.all(promises).then(() => {
+//       return this.buffers;
+//     })
+//   }
+// }

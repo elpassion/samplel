@@ -35,7 +35,7 @@ const WhiteKey = styled.div`
   top: 0;
   margin-right: 4px;
   cursor: pointer;
-  transition: all .1s ease;
+  transition: all .05s ease;
   opacity: ${props => props.isActive ? 0.7 : 1};
   transform: translate(0, ${props => props.isActive ? 0 : '-3px'});
   user-select: none;
@@ -64,7 +64,7 @@ const BlackKey = styled.div`
   width: 38px;
   background: #303030;
   transform: translate(50%, ${props => props.isActive ? 0 : '-3px'});
-  transition: all .1s ease;
+  transition: all .05s ease;
   cursor: pointer;
 
   &::before {
@@ -77,7 +77,7 @@ const BlackKey = styled.div`
     border-radius: 0 0 4px 4px;
     opacity: ${props => props.isActive ? 0 : 1};
     transform: translateY(${props => props.isActive ? 0 : '-3px' });
-    transition: all .1s ease;
+    transition: all .05s ease;
   }
 
   ${KeyLabel} {

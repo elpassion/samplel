@@ -7,11 +7,12 @@ import {
   AudioContext,
   Oscillator,
   MidiInstrument,
-  SoundsBuffer
 } from "../Sound/Sound";
 import Instrument from "../Instrument/Instrument";
+import SoundLoader from "../Sound/SoundLoader";
 
 const context = new AudioContext();
+const soundLoader = new SoundLoader(context);
 
 const timer = new Timer(60);
 
@@ -27,15 +28,8 @@ class TrackComponent extends React.Component {
   state = {
     selectedInstrument: "oscillator"
   };
-  marimbaBuffers = {};
 
   componentDidMount() {
-    const file =
-      "http://cdn.rawgit.com/gleitz/midi-js-soundfonts/gh-pages/MusyngKite/banjo-mp3.js";
-
-    new SoundsBuffer(context, { file: file, name: "banjo" }).then(buffers => {
-      this.marimbaBuffers = buffers;
-    });
     this.track.stream$.subscribe({
       next: events => {
         events.forEach(event => {
@@ -52,19 +46,32 @@ class TrackComponent extends React.Component {
   }
 
   instrument = () => {
-    return this.state.selectedInstrument === "oscillator"
+    const { selectedInstrument } = this.state;
+
+    return selectedInstrument === "oscillator"
       ? new Oscillator(context)
-      : new MidiInstrument(context, this.marimbaBuffers);
+      : new MidiInstrument(context, soundLoader.buffers[selectedInstrument]);
   };
+
+  onSelectInstrument = (e) => {
+    const selectedInstrument = e.target.value;
+
+    this.setState({ selectedInstrument });
+
+    if (selectedInstrument === 'oscillator') return;
+
+    soundLoader.loadInstrument(selectedInstrument)
+      .then(() => console.log('Loaded', selectedInstrument));
+  }
 
   render() {
     return (
       <div>
-        <select
-          onChange={e => this.setState({ selectedInstrument: e.target.value })}
-        >
+        <select onChange={this.onSelectInstrument}>
           <option value="oscillator">Oscillator</option>
-          <option value="banjo">Banjo</option>
+          {soundLoader.instruments.map(name => (
+            <option key={name} value={name}>{name}</option>
+          ))}
         </select>
         <Instrument
           isActive={this.props.isActive}
@@ -81,7 +88,7 @@ class App extends React.Component {
   state = {
     activeTrack: 0
   }
-  
+
   render() {
     const { count, bpm } = this.props;
     return (
