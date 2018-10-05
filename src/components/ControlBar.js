@@ -37,6 +37,10 @@ const ButtonContainer = styled(Flex)`
   margin-left: auto;
 `;
 
+const VolumeContainer = styled(ButtonContainer)`
+  margin-left: 30px
+`;
+
 const Counter = styled.div`
   font-size: 24px;
 `;
@@ -57,7 +61,7 @@ const SmallButton = styled(Button)`
 
 const GrayButton = styled(SmallButton)`
   background: #5C5C5C;
-  color: #fff;
+  color: #303030;
   margin: 0 4px 10px;
 `;
 
@@ -142,6 +146,20 @@ class ControlBar extends React.Component {
               <Bpm>{this.state.bpm}</Bpm>
             </Flex>
           </ButtonContainer>
+
+          <VolumeContainer>
+            <GrayButton>
+              <svg version="1.2" baseProfile="tiny" width="18" height="18" className="p2" fill="#303030">
+                <path
+                  d="M3.2149115128211534,15.89439998807081 A9,9 0 1 0 3.2149115128211454,15.894399988070802L4.3719292102569165,14.515519990456642 A7.2,7.2 0 1 1 4.371929210256923,14.515519990456648L3.2149115128211534,15.89439998807081"></path>
+                <path
+                  d="M13.266898407315153,16.92423989929958 A9,9 0 1 0 3.2149115128211454,15.894399988070802L4.3719292102569165,14.515519990456642 A7.2,7.2 0 1 1 12.413518725852125,15.339391919439663L13.266898407315153,16.92423989929958"></path>
+                <rect x="8.1" y="0" width="1.8" height="9" className=" pointer"
+                      transform="rotate(511.6992442339936 9 9)"></rect>
+              </svg>
+            </GrayButton>
+            <Label>Volume</Label>
+          </VolumeContainer>
         </ContainerFluid>
       </Container>
     );
