@@ -102,6 +102,7 @@ class TrackComponent extends React.Component {
             onClick={this.props.onClick}
             Column={TracksColumn}
             Beat={TrackBeat}
+            isActive={this.props.isActive}
           />
           <Instrument
             isActive={this.props.isActive}
@@ -130,8 +131,8 @@ const InstrumentPicker = styled.select`
   left: 100%;
 `;
 
-const TracksRow = ({ Column, Beat, events, onClick, onSelectInstrument }) => (
-  <TracksRow.Wrapper onClick={onClick}>
+const TracksRow = ({ Column, Beat, events, onClick, onSelectInstrument, isActive }) => (
+  <TracksRow.Wrapper onClick={onClick} isActive={isActive}>
     {Array.from({ length: Timer.BEAT_COUNT }, (_, index) => (
       <>
         {onSelectInstrument && (
@@ -155,7 +156,9 @@ TracksRow.Wrapper = styled.div`
   display: flex;
   flex-direction: row;
   width: 100%;
+  border: 2px solid transparent;
   border-top: 1px solid black;
+  ${props =>props.isActive && `border-color: red`};
 `;
 
 const TracksColumn = ({ Beat, index, events }) => (
