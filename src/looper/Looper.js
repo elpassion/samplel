@@ -1,6 +1,5 @@
 import React from "react";
 import { Provider, connect } from "@seracio/xstream-connect";
-import xs from "xstream";
 import styled from "styled-components";
 import Track from "./Track";
 import { AudioContext, Oscillator, MidiInstrument } from "../Sound/Sound";
@@ -11,12 +10,6 @@ import Timer from "./Timer";
 
 const context = new AudioContext();
 const soundLoader = new SoundLoader(context);
-
-const store = {
-  count$: timer.stream$,
-  player$: timer.stateStream$,
-  bpm$: timer.bpmStream$
-};
 
 const Beat = styled.div`
   flex: 1;
@@ -191,7 +184,7 @@ const Sound = styled.div`
   width: ${({length}) => `${length * 14.94}px`}
 `;
 
-class App extends React.Component {
+class Loop extends React.Component {
   state = {
     activeTrack: 0
   };
@@ -213,9 +206,7 @@ class App extends React.Component {
 export default class Looper extends React.Component {
   render() {
     return (
-      <Provider store={store}>
-        <App />
-      </Provider>
+      <Loop />
     );
   }
 }

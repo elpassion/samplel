@@ -1,21 +1,12 @@
 import React from 'react';
 import styled from 'styled-components';
-import { Provider, connect } from "@seracio/xstream-connect";
-import xs from "xstream";
+import { connect } from "@seracio/xstream-connect";
 import { ReactComponent as SvgPlay } from '../assets/icons/play.svg';
 import { ReactComponent as SvgStop } from '../assets/icons/stop.svg';
 import { ReactComponent as SvgRecord } from '../assets/icons/record.svg';
 import { ReactComponent as SvgMinus } from '../assets/icons/minus.svg';
 import { ReactComponent as SvgPlus } from '../assets/icons/plus.svg';
-import Timer from "../looper/Timer";
-
-const timer = new Timer(60);
-
-const store = {
-  count$: timer.stream$,
-  player$: timer.stateStream$,
-  bpm$: timer.bpmStream$
-};
+import timer from "../timer";
 
 const Flex = styled.div`
   display: flex;
@@ -92,31 +83,7 @@ const Label = styled.span`
 `;
 
 class ControlBar extends React.Component {
-
-  state = {
-    bpm: this.props.bpm
-  }
-
-  incrementBPM = () => {
-
-    this.setState(prevState => ({
-      bpm: prevState.bpm + 10
-    }));
-
-    timer.setBpm(this.state.bpm)
-  }
-
-  decreaseBPM = () => {
-
-    this.setState(prevState => ({
-      bpm: prevState.bpm - 10
-    }));
-
-    timer.setBpm(this.state.bpm)
-  }
-
   render() {
-
     return (
       <Container>
         <ContainerFluid>
@@ -132,18 +99,18 @@ class ControlBar extends React.Component {
           </PauseButton>
           <ButtonContainer>
             <Flex>
-              <GrayButton onClick={this.decreaseBPM}>
+              <GrayButton onClick={() => timer.setBpm(this.props.bpm - 5)}>
                 <SvgMinus />
               </GrayButton>
 
-              <GrayButton onClick={this.incrementBPM}>
+              <GrayButton onClick={() => timer.setBpm(this.props.bpm + 5)}>
                 <SvgPlus />
               </GrayButton>
             </Flex>
 
             <Flex>
               <Label>BPM:</Label>
-              <Bpm>{this.state.bpm}</Bpm>
+              <Bpm>{this.props.bpm}</Bpm>
             </Flex>
           </ButtonContainer>
 
@@ -166,21 +133,8 @@ class ControlBar extends React.Component {
   }
 }
 
+const ConnectedControlBar = connect(({ bpm$ }) => {
+  return bpm$.map((bpm) => ({ bpm }));
+})(ControlBar);
 
-const combinator = ({ count$, player$, bpm$ }) => {
-  return xs
-    .combine(count$, player$, bpm$)
-    .map(([count, isPlaying, bpm]) => ({ count, isPlaying, bpm }));
-};
-
-const ConnectedApp = connect(combinator)(ControlBar);
-
-export default class Looper extends React.Component {
-  render() {
-    return (
-      <Provider store={store}>
-        <ConnectedApp />
-      </Provider>
-    );
-  }
-}
+export default ConnectedControlBar;

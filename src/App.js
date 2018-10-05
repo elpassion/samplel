@@ -1,8 +1,10 @@
-import React, { Component } from 'react';
-import styled, { createGlobalStyle } from 'styled-components';
-import Piano from './components/Piano';
-import ControlBar from './components/ControlBar';
-import Looper from './looper/Looper';
+import React, { Component } from "react";
+import styled, { createGlobalStyle } from "styled-components";
+import Piano from "./components/Piano";
+import ControlBar from "./components/ControlBar";
+import Looper from "./looper/Looper";
+import { Provider as XstreamProvider } from "@seracio/xstream-connect";
+import timer from "./timer";
 
 const GlobalStyles = createGlobalStyle`
   *,
@@ -42,17 +44,25 @@ const Flex = styled.div`
   background: #303030;
 `;
 
+const xstreamStore = {
+  count$: timer.stream$,
+  player$: timer.stateStream$,
+  bpm$: timer.bpmStream$
+};
+
 class App extends Component {
   render() {
     return (
-      <AppContainer>
-        <GlobalStyles />
-        <Flex>
-          <Looper />
-          <Piano />
-          <ControlBar />
-        </Flex>
-      </AppContainer>
+      <XstreamProvider store={xstreamStore}>
+        <AppContainer>
+          <GlobalStyles />
+          <Flex>
+            <Looper />
+            <Piano />
+            <ControlBar />
+          </Flex>
+        </AppContainer>
+      </XstreamProvider>
     );
   }
 }
