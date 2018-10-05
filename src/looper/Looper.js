@@ -97,7 +97,12 @@ class TrackComponent extends React.Component {
         }}
       >
         <>
-          <ConnectedTracksRow Column={TracksColumn} Beat={TrackBeat} />
+          <ConnectedTracksRow
+            onSelectInstrument={this.onSelectInstrument}
+            onClick={this.props.onClick}
+            Column={TracksColumn}
+            Beat={TrackBeat}
+          />
           <Instrument
             isActive={this.props.isActive}
             instrument={this.instrument}
@@ -120,10 +125,24 @@ const Tracks = styled.div`
   margin: 0 auto;
 `;
 
-const TracksRow = ({ Column, Beat, events }) => (
-  <TracksRow.Wrapper>
+const InstrumentPicker = styled.select`
+  position: absolute;
+  left: 100%;
+`;
+
+const TracksRow = ({ Column, Beat, events, onClick, onSelectInstrument }) => (
+  <TracksRow.Wrapper onClick={onClick}>
     {Array.from({ length: Timer.BEAT_COUNT }, (_, index) => (
-      <Column key={index} index={index} Beat={Beat} events={events} />
+      <>
+        {onSelectInstrument && (
+          <InstrumentPicker onChange={onSelectInstrument}>
+            {soundLoader.instruments.map(name => (
+              <option value={name}>{name}</option>
+            ))}
+          </InstrumentPicker>
+        )}
+        <Column key={index} index={index} Beat={Beat} events={events} />
+      </>
     ))}
   </TracksRow.Wrapper>
 );
@@ -180,8 +199,8 @@ const Sound = styled.div`
   height: 8px;
   position: absolute;
   left: 0;
-  top: ${({top}) => `${top}px`}
-  width: ${({length}) => `${length * 14.94}px`}
+  top: ${({ top }) => `${top}px`}
+  width: ${({ length }) => `${length * 14.94}px`}
 `;
 
 class Loop extends React.Component {
@@ -189,15 +208,33 @@ class Loop extends React.Component {
     activeTrack: 0
   };
 
+  static SetActiveTrack = styled.select`
+    position: fixed;
+    bottom: 20px;
+    left: 100px;
+  `;
+
   render() {
     return (
       <Tracks>
         <ConnectedTicker />
         <TracksRow Column={TracksColumn} Beat={HeaderBeat} />
-        <TrackComponent isActive={this.state.activeTrack === 0} />
-        <TrackComponent isActive={this.state.activeTrack === 1} />
-        <TrackComponent isActive={this.state.activeTrack === 2} />
-        <TrackComponent isActive={this.state.activeTrack === 3} />
+        <TrackComponent
+          onClick={() => this.setState({ activeTrack: 0 })}
+          isActive={this.state.activeTrack === 0}
+        />
+        <TrackComponent
+          onClick={() => this.setState({ activeTrack: 1 })}
+          isActive={this.state.activeTrack === 1}
+        />
+        <TrackComponent
+          onClick={() => this.setState({ activeTrack: 2 })}
+          isActive={this.state.activeTrack === 2}
+        />
+        <TrackComponent
+          onClick={() => this.setState({ activeTrack: 3 })}
+          isActive={this.state.activeTrack === 3}
+        />
       </Tracks>
     );
   }
@@ -205,8 +242,6 @@ class Loop extends React.Component {
 
 export default class Looper extends React.Component {
   render() {
-    return (
-      <Loop />
-    );
+    return <Loop />;
   }
 }
