@@ -7,14 +7,11 @@ import { ReactComponent as SvgStop } from '../assets/icons/stop.svg';
 import { ReactComponent as SvgRecord } from '../assets/icons/record.svg';
 import { ReactComponent as SvgMinus } from '../assets/icons/minus.svg';
 import { ReactComponent as SvgPlus } from '../assets/icons/plus.svg';
-import Timer from "../looper/Timer";
-
-const timer = new Timer(60);
 
 const store = {
-  count$: timer.stream$,
-  player$: timer.stateStream$,
-  bpm$: timer.bpmStream$
+  count$: null,
+  player$: null,
+  bpm$: null,
 };
 
 const Flex = styled.div`
@@ -78,7 +75,7 @@ const PauseButton = styled(DarkButton)`
   color: #EE4444;
 `;
 
-const Bpm = styled.span` 
+const Bpm = styled.span`
   font-size: 12px;
   line-height: 1.2;
   color: #fff;
@@ -98,12 +95,9 @@ class ControlBar extends React.Component {
   }
 
   incrementBPM = () => {
-
     this.setState(prevState => ({
       bpm: prevState.bpm + 10
     }));
-
-    timer.setBpm(this.state.bpm)
   }
 
   decreaseBPM = () => {
@@ -111,8 +105,6 @@ class ControlBar extends React.Component {
     this.setState(prevState => ({
       bpm: prevState.bpm - 10
     }));
-
-    timer.setBpm(this.state.bpm)
   }
 
   render() {
@@ -121,10 +113,10 @@ class ControlBar extends React.Component {
       <Container>
         <ContainerFluid>
           <Counter>00:10.0</Counter>
-          <DarkButton onClick={() => timer.start()} >
+          <DarkButton>
             <StyledSvgPlay />
           </DarkButton>
-          <DarkButton onClick={() => timer.stop()} >
+          <DarkButton>
             <SvgStop />
           </DarkButton>
           <PauseButton>
