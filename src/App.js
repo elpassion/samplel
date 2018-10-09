@@ -146,6 +146,7 @@ class App extends Component {
             <WaveConfig>
               {['sine', 'square', 'sawtooth', 'triangle'].map(osc => (
                 <WaveOption
+                  key={osc}
                   onClick={() => appState.onOscillatorChange(osc)}
                   isActive={appState.oscillatorConfig.type === osc}
                 >

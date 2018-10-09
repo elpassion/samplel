@@ -1,18 +1,10 @@
 import React from 'react';
 import styled from 'styled-components';
-import { Provider, connect } from "@seracio/xstream-connect";
-import xs from "xstream";
 import { ReactComponent as SvgPlay } from '../assets/icons/play.svg';
 import { ReactComponent as SvgStop } from '../assets/icons/stop.svg';
 import { ReactComponent as SvgRecord } from '../assets/icons/record.svg';
 import { ReactComponent as SvgMinus } from '../assets/icons/minus.svg';
 import { ReactComponent as SvgPlus } from '../assets/icons/plus.svg';
-
-const store = {
-  count$: null,
-  player$: null,
-  bpm$: null,
-};
 
 const Flex = styled.div`
   display: flex;
@@ -88,10 +80,10 @@ const Label = styled.span`
   padding-right: 5px;
 `;
 
-class ControlBar extends React.Component {
+export default class ControlBar extends React.Component {
 
   state = {
-    bpm: this.props.bpm
+    bpm: 80
   }
 
   incrementBPM = () => {
@@ -154,25 +146,6 @@ class ControlBar extends React.Component {
           </VolumeContainer>
         </ContainerFluid>
       </Container>
-    );
-  }
-}
-
-
-const combinator = ({ count$, player$, bpm$ }) => {
-  return xs
-    .combine(count$, player$, bpm$)
-    .map(([count, isPlaying, bpm]) => ({ count, isPlaying, bpm }));
-};
-
-const ConnectedApp = connect(combinator)(ControlBar);
-
-export default class Looper extends React.Component {
-  render() {
-    return (
-      <Provider store={store}>
-        <ConnectedApp />
-      </Provider>
     );
   }
 }
