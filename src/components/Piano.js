@@ -15,6 +15,7 @@ const KeyboardContainer = styled(Flex)`
   padding-bottom: 24px;
   border-top: 2px solid black;
   overflow: hidden;
+  user-select: none;
 
   &::before {
     content: close-quote;
@@ -111,6 +112,7 @@ class BaseKey extends React.Component {
       <Component
         onMouseDown={this.onMouseDown}
         onMouseUp={this.onMouseUp}
+        onMouseLeave={this.onMouseUp}
         isActive={isKeyActive}
         {...props}
       >
@@ -125,10 +127,13 @@ const Key = inject('appState')(observer(BaseKey));
 const KeyPair = styled(Flex)``;
 
 class Piano extends React.Component {
+  activeKeys = {};
+
   onKeyboardKeyUp = (e) => {
     const key = data.keymapper[e.keyCode];
 
     if (key) {
+      this.activeKeys[key] = false;
       const actualKey = `${key[0]}${(this.props.appState.currentOctave + key[1])}`;
       this.props.appState.onKeyUp(Note.midi(actualKey));
     }
@@ -137,7 +142,8 @@ class Piano extends React.Component {
   onKeyboardKeyDown = (e) => {
     const key = data.keymapper[e.keyCode];
 
-    if (key) {
+    if (key && !this.activeKeys[key]) {
+      this.activeKeys[key] = true;
       const actualKey = `${key[0]}${(this.props.appState.currentOctave + key[1])}`;
       this.props.appState.onKeyDown(Note.midi(actualKey));
     }
@@ -148,7 +154,7 @@ class Piano extends React.Component {
     document.addEventListener('keyup', this.onKeyboardKeyUp);
   }
 
-  componentWillMount() {
+  componentWillUnmount() {
     document.removeEventListener('keydown', this.onKeyboardKeyDown);
     document.removeEventListener('keyup', this.onKeyboardKeyUp);
   }
@@ -157,7 +163,7 @@ class Piano extends React.Component {
     const getKeyName = (name, offset = 0) => name + (this.props.appState.currentOctave + offset);
 
     return (
-      <KeyboardContainer>
+      <KeyboardContainer onFocus={() => console.log('focus piano')}>
         <KeyPair>
           <Key name={getKeyName('C')} label="A" />
           <Key name={getKeyName('C#')} label="W" as={BlackKey} />

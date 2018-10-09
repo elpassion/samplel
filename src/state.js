@@ -1,20 +1,25 @@
 import { decorate, observable, action } from 'mobx';
-import SoundLoader from "./Sound/SoundLoader";
 import {
   AudioContext,
-  Oscillator,
-  MidiInstrument
+  Oscillator
 } from "./Sound/Sound";
 
 const context = new AudioContext();
-const soundLoader = new SoundLoader(context);
+
+const OSCILLATOR_SIZE = 'sine';
+const OSCILLATOR_SQUARE = 'square';
+const OSCILLATOR_SAWTOOTH = 'sawtooth';
+const OSCILLATOR_TRIANGLE = 'triangle';
 
 class AppState {
   pressedKeys = [];
-  currentOctave = 4;
-  selectedInstrument = 'oscillator';
-  activeTrack = 0;
-  currentlyPlayingNotes = {};
+  currentOctave = 3;
+  runningOscillators = [];
+
+  oscillatorConfig = {
+    type: 'sine',
+    gain: 1,
+  };
 
   onKeyDown = (midiCode) => {
     this.playNote(midiCode);
@@ -22,26 +27,24 @@ class AppState {
     this.pressedKeys = [...this.pressedKeys, midiCode];
   }
 
-  instrument = () => {
-    return this.selectedInstrument === "oscillator"
-      ? new Oscillator(context)
-      : new MidiInstrument(context, soundLoader.buffers[this.selectedInstrument]);
-  }
-
   playNote = (code) => {
-    if (this.currentlyPlayingNotes[code] && this.currentlyPlayingNotes[code].stop) {
-      this.currentlyPlayingNotes[code].stop();
+    const oscillator = {
+      node: new Oscillator(context, this.oscillatorConfig),
+      code,
     }
 
-    const instrument = this.instrument();
-    this.currentlyPlayingNotes[code] = instrument;
-    instrument.play(code);
+    oscillator.node.play(code);
+    this.runningOscillators = [...this.runningOscillators, oscillator];
   }
 
   stopNote = (code) => {
-    if (this.currentlyPlayingNotes[code]) {
-      this.currentlyPlayingNotes[code].stop();
-      delete this.currentlyPlayingNotes[code];
+    const oscillator = this.runningOscillators.find(osc => osc.code === code)
+
+    if (oscillator) {
+      oscillator.node.stop();
+
+      this.runningOscillators = this.runningOscillators
+        .filter(osc => osc.code !== oscillator.code);
     }
   }
 
@@ -51,26 +54,38 @@ class AppState {
     this.pressedKeys = this.pressedKeys.filter((code) => code !== midiCode);
   }
 
-  onSelectInstrument = (e) => {
-    this.selectedInstrument = e.target.value;
+  updateRunningOscillators = () => {
+    this.runningOscillators.forEach(osc => osc.node.update(this.oscillatorConfig));
+  }
 
-    if (this.selectedInstrument === 'oscillator') return;
+  onOscillatorChange = (type) => {
+    this.oscillatorConfig.type = type;
+    this.updateRunningOscillators();
+  }
 
-    soundLoader.loadInstrument(this.selectedInstrument)
-      .then(() => console.log('Loaded:', this.selectedInstrument));
+  onGainChange = (e) => {
+    this.oscillatorConfig.gain = e.target.value;
+    this.updateRunningOscillators();
+  }
+
+  onChangeOctave = (octave) => {
+    this.runningOscillators.forEach(osc => osc.node.stop());
+    this.pressedKeys = [];
+
+    this.currentOctave = octave;
   }
 }
 
 decorate(AppState, {
   pressedKeys: observable,
   activeTrack: observable,
-  selectedInstrument: observable,
   currentOctave: observable,
-  currentlyPlayingNotes: observable,
+  oscillatorConfig: observable,
+  runningOscillators: observable,
+  onOscillatorChange: action,
   onKeyDown: action,
   onKeyUp: action,
   playNote: action,
-  onSelectInstrument: action,
   stopNote: action
 })
 

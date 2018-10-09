@@ -5,6 +5,7 @@ export const AudioContext = window.AudioContext || window.webkitAudioContext;
 export class Oscillator {
   config = {
     type: 'sine',
+    gain: 0.5,
     frequencyValue: 440,
     fadeOut: 0.6, // fadeOut time after calling stop
   }
@@ -12,6 +13,8 @@ export class Oscillator {
   constructor(context, config = {}) {
     this.context = context;
     this.config = Object.assign({}, this.config, config);
+
+    return this;
   }
 
   init = () => {
@@ -31,6 +34,7 @@ export class Oscillator {
     });
 
     this.oscillator.start();
+    // this.stop(this.context.currentTime + 2);
 
     return this;
   }
@@ -43,10 +47,16 @@ export class Oscillator {
   update(config) {
     this.config = Object.assign({}, this.config, config);
 
+    if (this.gainNode) {
+      this.gainNode.gain.value = this.config.gain;
+    }
+
     if (this.oscillator) {
       this.oscillator.type = this.config.type;
       this.oscillator.frequency.value = this.config.frequencyValue;
     }
+
+    return this;
   }
 }
 
