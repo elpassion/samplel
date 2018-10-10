@@ -13,12 +13,12 @@ const OSCILLATOR_TRIANGLE = 'triangle';
 
 class AppState {
   pressedKeys = [];
-  currentOctave = 3;
+  currentOctave = 4;
   runningOscillators = [];
 
   oscillatorConfig = {
     type: 'sine',
-    gain: 1,
+    gain: 0.7,
   };
 
   onKeyDown = (midiCode) => {

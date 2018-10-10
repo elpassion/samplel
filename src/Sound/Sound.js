@@ -34,7 +34,7 @@ export class Oscillator {
     });
 
     this.oscillator.start();
-    // this.stop(this.context.currentTime + 2);
+    this.stop(this.context.currentTime + 1);
 
     return this;
   }
